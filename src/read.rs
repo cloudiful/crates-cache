@@ -1,4 +1,5 @@
 use crate::Cache;
+use chrono::{DateTime, Local, TimeDelta};
 use log::info;
 use std::fs::File;
 use std::io::Read;
@@ -23,7 +24,7 @@ impl Cache {
 
             info!("Last modified: {} minutes ago", duration.as_secs() / 60);
 
-            if duration > self.revalidate_duration {
+            if TimeDelta::from_std(duration).unwrap() > self.valid_period {
                 None
             } else {
                 let mut cache_str = String::new();
@@ -41,20 +42,34 @@ impl Cache {
         let mut stmt = self.sqlite_conn.prepare("SELECT * FROM cache where name = ?1").expect("Failed to prepare query");
 
         let results = stmt.query_map([&self.name], |row| {
-            let result_str: Result<String, rusqlite::Error> = row.get(1);
-            result_str
+            let result_str: String = row.get(1).unwrap();
+            // let insert_time: i64 = row.get(2).unwrap();
+            let update_time: i64 = row.get(3).unwrap();
+            let datetime = DateTime::from_timestamp_micros(update_time).unwrap();
+            let duration = Local::now().signed_duration_since(datetime);
+            Ok((result_str, duration))
         }).expect("Failed to query query");
 
         let mut strings = Vec::new();
 
-        for result in results {
-            strings.push(result.unwrap());
+        for result_set in results {
+            match result_set {
+                Ok(result) => {
+                    if result.1 < self.valid_period {
+                        strings.push(result.0);
+                    }
+                }
+                Err(_) => {
+                    return None
+                }
+            }
         }
 
         match strings.first() {
             None => { None }
             Some(string) => {
                 let result: T = serde_json::from_str(string).expect("Failed to parse cache file");
+                println!("{}",string);
                 Some(result)
             }
         }
