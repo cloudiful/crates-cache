@@ -23,7 +23,7 @@ impl Cache {
         Cache {
             name: String::from(name),
             dir_name: String::from("temp"),
-            storing_method: StoringMethod::JSON,
+            storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
             revalidate_duration: Duration::from_secs(600),
         }
@@ -103,12 +103,14 @@ mod tests {
     fn save_to_file() {
         let apple = Apple::new(4);
 
-        let apple_cache = Cache::new("apple2");
+        let mut apple_cache = Cache::new("apple2");
+        apple_cache.set_storing_method(StoringMethod::JSON);
 
         apple_cache.save(&apple);
     }
     fn read_from_file() {
-        let apple_cache = Cache::new("apple2");
+        let mut apple_cache = Cache::new("apple2");
+        apple_cache.set_storing_method(StoringMethod::JSON);
 
         let cached_apple: Option<Apple> = apple_cache.read();
 
@@ -117,7 +119,8 @@ mod tests {
     fn clear_file() {
         let apple = Apple::new(3);
 
-        let apple_cache = Cache::new("apple1");
+        let mut apple_cache = Cache::new("apple1");
+        apple_cache.set_storing_method(StoringMethod::JSON);
 
         apple_cache.save(&apple);
 
@@ -140,18 +143,14 @@ mod tests {
 
         apple.price = 7;
 
-        let mut apple_cache = Cache::new("apple3");
-
-        apple_cache.set_storing_method(StoringMethod::SQLite);
+        let apple_cache = Cache::new("apple3");
 
         apple_cache.save(&apple);
 
         apple.price = 9;
     }
     fn read_from_sqlite() {
-        let mut apple_cache = Cache::new("apple3");
-
-        apple_cache.set_storing_method(StoringMethod::SQLite);
+        let apple_cache = Cache::new("apple3");
 
         let cached_apple: Option<Apple> = apple_cache.read();
 
