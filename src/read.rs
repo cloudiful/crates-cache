@@ -69,7 +69,6 @@ impl Cache {
             None => { None }
             Some(string) => {
                 let result: T = serde_json::from_str(string).expect("Failed to parse cache file");
-                println!("{}",string);
                 Some(result)
             }
         }
