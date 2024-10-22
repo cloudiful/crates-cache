@@ -31,8 +31,6 @@ impl Cache {
 
         let current_timestamp = Utc::now().timestamp_micros();
 
-        self.sqlite_conn.execute("create table IF NOT EXISTS cache (name TEXT PRIMARY KEY, data TEXT, insert_time INTEGER NOT NULL, update_time INTEGER NOT NULL)", ()).expect("Failed to create table");
-
         self.sqlite_conn.execute("INSERT INTO cache (name, data, insert_time, update_time) VALUES (?1, ?2, ?3, ?3) ON CONFLICT(name) DO UPDATE SET data = ?2, update_time = ?3", params![self.name ,json, current_timestamp]).expect("Failed to insert data");
     }
 }

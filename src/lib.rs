@@ -20,13 +20,17 @@ pub enum StoringMethod {
 
 impl Cache {
     pub fn new(name: &str) -> Cache {
-        Cache {
+        let cache = Cache {
             name: String::from(name),
             dir_name: String::from("temp"),
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
             valid_period: TimeDelta::new(600, 0).unwrap(),
-        }
+        };
+
+        cache.sqlite_conn.execute("create table IF NOT EXISTS cache (name TEXT PRIMARY KEY, data TEXT, insert_time INTEGER NOT NULL, update_time INTEGER NOT NULL)", ()).expect("Failed to create table");
+
+        cache
     }
 
     pub fn set_storing_method(&mut self, method: StoringMethod) {
