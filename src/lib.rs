@@ -1,18 +1,22 @@
 mod read;
 mod save;
 mod clear;
+mod test;
 
 use chrono::TimeDelta;
 use std::path::PathBuf;
 
+#[derive(Debug)]
 pub struct Cache {
     name: String,
     dir_name: String,
     storing_method: StoringMethod,
     sqlite_conn: rusqlite::Connection,
+    table: String,
     valid_period: TimeDelta,
 }
 
+#[derive(Debug)]
 pub enum StoringMethod {
     JSON,
     SQLite,
@@ -25,10 +29,11 @@ impl Cache {
             dir_name: String::from("temp"),
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
+            table: "cache".to_string(),
             valid_period: TimeDelta::new(600, 0).unwrap(),
         };
 
-        cache.sqlite_conn.execute("create table IF NOT EXISTS cache (name TEXT PRIMARY KEY, data TEXT, insert_time INTEGER NOT NULL, update_time INTEGER NOT NULL)", ()).expect("Failed to create table");
+        cache.create_table(&cache.table);
 
         cache
     }
@@ -39,6 +44,18 @@ impl Cache {
 
     pub fn set_valid_period(&mut self, valid_period: TimeDelta) {
         self.valid_period = valid_period;
+    }
+
+    pub fn set_table(&mut self, table_name: &str) {
+        self.table = table_name.to_string();
+        self.create_table(&self.table);
+    }
+
+    fn create_table(&self, name: &str) {
+        let sql = format!("create table IF NOT EXISTS {} (name TEXT PRIMARY KEY, data TEXT, insert_time INTEGER NOT NULL, update_time INTEGER NOT NULL)", name);
+        self.sqlite_conn
+            .execute(&sql, ())
+            .expect("Failed to create table");
     }
 
     pub fn read<T>(&self) -> Option<T>
@@ -78,103 +95,5 @@ impl Cache {
                 self.clear_sqlite()
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Debug, Serialize, Deserialize, PartialEq)]
-    struct Apple {
-        pub(crate) name: String,
-        price: i32,
-    }
-
-    impl Apple {
-        fn new(price: i32) -> Apple {
-            Apple {
-                name: String::from("water"),
-                price,
-            }
-        }
-    }
-
-    #[test]
-    fn json() {
-        save_to_file();
-        read_from_file();
-        clear_file();
-    }
-
-    fn save_to_file() {
-        let apple = Apple::new(4);
-
-        let mut apple_cache = Cache::new("apple2");
-        apple_cache.set_storing_method(StoringMethod::JSON);
-
-        apple_cache.save(&apple);
-    }
-    fn read_from_file() {
-        let mut apple_cache = Cache::new("apple2");
-        apple_cache.set_storing_method(StoringMethod::JSON);
-
-        let cached_apple: Option<Apple> = apple_cache.read();
-
-        assert_eq!(Some(Apple::new(4)), cached_apple);
-    }
-    fn clear_file() {
-        let apple = Apple::new(3);
-
-        let mut apple_cache = Cache::new("apple1");
-        apple_cache.set_storing_method(StoringMethod::JSON);
-
-        apple_cache.save(&apple);
-
-        apple_cache.clear();
-
-        let cached_apple: Option<Apple> = apple_cache.read();
-
-        assert_eq!(None, cached_apple);
-    }
-
-    #[test]
-    fn sqlite() {
-        save_to_sqlite();
-        read_from_sqlite();
-        clear_sqlite();
-    }
-
-    fn save_to_sqlite() {
-        let mut apple = Apple::new(5);
-
-        apple.price = 7;
-
-        let apple_cache = Cache::new("apple3");
-
-        apple_cache.save(&apple);
-
-        apple.price = 9;
-    }
-    fn read_from_sqlite() {
-        let apple_cache = Cache::new("apple3");
-
-        let cached_apple: Option<Apple> = apple_cache.read();
-
-        assert_eq!(Some(Apple::new(7)), cached_apple);
-    }
-    fn clear_sqlite() {
-        let apple = Apple::new(3);
-
-        let apple_cache = Cache::new("apple1");
-
-        apple_cache.save(&apple);
-
-        apple_cache.clear();
-
-        let cached_apple: Option<Apple> = apple_cache.read();
-
-        assert_eq!(None, cached_apple);
     }
 }

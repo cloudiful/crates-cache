@@ -20,6 +20,7 @@ impl Cache {
     }
 
     pub(crate) fn clear_sqlite(&self) {
-        self.sqlite_conn.execute("delete from cache where name = ?1", params![self.name]).expect("Failed to clear cache.");
+        let sql= format!("delete from {} where name = ?1", self.table);
+        self.sqlite_conn.execute(&sql, params![self.name]).expect("Failed to clear cache.");
     }
 }
