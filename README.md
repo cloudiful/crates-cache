@@ -73,7 +73,21 @@ Set how much time cache is valid
 fn save_to_file() {
     let apple = Apple::new(4);
     let mut apple_cache = Cache::new("apple2");
-    apple_cache.set_valid_period(TimeDelta::new(600, 0).unwrap()); // set valid period to 10 minute 
+    apple_cache.set_valid_period(TimeDelta::minute(60)); // set valid period to 10 minute 
     apple_cache.save(&apple);
 }
+```
+
+### set_table
+
+Change sql table
+
+```rust
+fn save_to_file() {
+    let apple = Apple::new(4);
+    let mut apple_cache = Cache::new("apple2");
+    apple_cache.set_table("data");
+    apple_cache.save(&apple);
+}
+
 ```
