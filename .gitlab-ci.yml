@@ -1,6 +1,6 @@
 test:
   stage: test
-  image: rust
+  image: rust:latest
   tags:
     - docker
   script:
