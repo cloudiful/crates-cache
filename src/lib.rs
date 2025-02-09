@@ -1,11 +1,11 @@
+use log::info;
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::{Duration, SystemTime};
-use log::info;
 
-pub struct Cache{
+pub struct Cache {
     name: String,
     dir_name: String,
     revalidate_duration: Duration,
@@ -13,7 +13,7 @@ pub struct Cache{
 
 impl Cache {
     pub fn new(name: &str) -> Cache {
-        Cache{
+        Cache {
             name: String::from(name),
             dir_name: String::from("temp"),
             revalidate_duration: Duration::from_secs(600),
@@ -45,9 +45,7 @@ impl Cache {
                 let result = serde_json::from_str(&cache_str).expect("Failed to parse cache file");
                 Some(result)
             }
-
         } else { None }
-
     }
 
     pub fn save<T>(&self, data: &T)
@@ -56,46 +54,77 @@ impl Cache {
     {
         let json = serde_json::to_string(data).expect("Failed to serialize cache data");
 
-        if !PathBuf::from(&self.dir_name).is_dir(){
+        if !PathBuf::from(&self.dir_name).is_dir() {
             fs::create_dir(&self.dir_name).expect("Failed to create cache directory");
         }
 
-        let mut file = File::create(format!("{}/{}.json", self.dir_name,self.name)).expect("Failed to create cache file");
+        let mut file = File::create(format!("{}/{}.json", self.dir_name, self.name)).expect("Failed to create cache file");
 
         file.write_all(json.as_bytes()).expect("Failed to write cache file");
+    }
+
+    pub fn clear(&self) {
+        match fs::remove_file(format!("{}/{}.json", self.dir_name, self.name)) {
+            Ok(_) => {
+                info!("Cleared cache directory");
+            }
+            Err(e) => {
+                info!("Failed to clean cache directory: {}", e);
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
     use super::*;
+    use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
-    struct Apple{
+    struct Apple {
         juice: String,
         pie: Vec<i32>,
     }
 
     impl Apple {
-        fn new() -> Apple{
-            Apple{
+        fn new() -> Option<Apple> {
+            Some(Apple {
                 juice: String::from("water"),
                 pie: Vec::new(),
-            }
+            })
         }
     }
 
     #[test]
-    fn it_works() {
+    fn clear() {
         let apple = Apple::new();
 
-        let apple_cache = Cache::new("test");
+        let apple_cache = Cache::new("apple1");
 
         apple_cache.save(&apple);
 
-        let cached_apple: Apple = apple_cache.read().unwrap();
+        apple_cache.clear();
 
-        assert_eq!(apple, cached_apple);
+        let cached_apple: Option<Apple> = apple_cache.read();
+
+        assert_eq!(None, cached_apple);
+    }
+
+    #[test]
+    fn save() {
+        let apple = Apple::new();
+
+        let apple_cache = Cache::new("apple2");
+
+        apple_cache.save(&apple);
+    }
+
+    #[test]
+    fn read(){
+        let apple_cache = Cache::new("apple2");
+
+        let cached_apple: Option<Apple> = apple_cache.read();
+
+        assert_eq!(Apple::new(), cached_apple);
     }
 }
