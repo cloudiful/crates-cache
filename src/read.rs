@@ -5,7 +5,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-impl Cache{
+impl Cache {
     pub(crate) fn read_from_file<T>(&self) -> Option<T>
     where
         T: serde::de::DeserializeOwned,
@@ -51,8 +51,12 @@ impl Cache{
             strings.push(result.unwrap());
         }
 
-        let result:T = serde_json::from_str(&strings.first().unwrap()).expect("Failed to parse cache file");
-
-        Some(result)
+        match strings.first() {
+            None => { None }
+            Some(string) => {
+                let result: T = serde_json::from_str(string).expect("Failed to parse cache file");
+                Some(result)
+            }
+        }
     }
 }
