@@ -1,3 +1,7 @@
 /target
 temp/
 .idea/
+vendor/
+Cargo.lock
+cache.iml
+cache.db
