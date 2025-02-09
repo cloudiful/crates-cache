@@ -68,10 +68,34 @@ impl Cache {
 
 #[cfg(test)]
 mod tests {
+    use serde::{Deserialize, Serialize};
     use super::*;
+
+    #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    struct Apple{
+        juice: String,
+        pie: Vec<i32>,
+    }
+
+    impl Apple {
+        fn new() -> Apple{
+            Apple{
+                juice: String::from("water"),
+                pie: Vec::new(),
+            }
+        }
+    }
 
     #[test]
     fn it_works() {
-        let cache = Cache::new("test");
+        let apple = Apple::new();
+
+        let apple_cache = Cache::new("test");
+
+        apple_cache.save(&apple);
+
+        let cached_apple: Apple = apple_cache.read().unwrap();
+
+        assert_eq!(apple, cached_apple);
     }
 }
