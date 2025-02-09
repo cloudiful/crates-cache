@@ -6,9 +6,15 @@ This is my way of persistent data storage in Rust.
 
 # Usage
 
-## Save a struct to local file
+## Save data
 
 ```rust
+#[derive(Serialize, Deserialize)]
+struct Apple {
+    pub(crate) name: String,
+    price: i32,
+}
+
 fn save() {
     let apple = Apple::new();
     let apple_cache = Cache::new("apple_cache");
@@ -16,11 +22,9 @@ fn save() {
 }
 ```
 
-The cache file will be at ./temp/apple_cache.json
-
 ***
 
-## Read a struct from local file
+## Read data
 
 ```rust
 fn read() {
@@ -29,11 +33,9 @@ fn read() {
 }
 ```
 
-It will read from ./temp/apple_cache.json and parse it into Option<Apple>
-
 ***
 
-## Clear cache
+## Clear
 
 ```rust
 fn clear() {
@@ -42,4 +44,36 @@ fn clear() {
 }
 ```
 
-It will simply delete ./temp/apple1.json file
+## Advanced configuration
+
+### set_storing_method
+
+Change storing method
+
+1. JSON: Save and read from a JSON file.
+
+2. SQLite: Insert, update and read from a local sqlite db file.
+
+```rust
+fn save_to_file() {
+    let apple = Apple::new(4);
+    let mut apple_cache = Cache::new("apple2");
+    apple_cache.set_storing_method(StoringMethod::JSON); // change storing method
+    apple_cache.save(&apple);
+}
+```
+
+### set_valid_period
+
+Change valid period
+
+Set how much time cache is valid
+
+```rust
+fn save_to_file() {
+    let apple = Apple::new(4);
+    let mut apple_cache = Cache::new("apple2");
+    apple_cache.set_valid_period(TimeDelta::new(600, 0).unwrap()); // set valid period to 10 minute 
+    apple_cache.save(&apple);
+}
+```

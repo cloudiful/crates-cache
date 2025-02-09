@@ -2,15 +2,15 @@ mod read;
 mod save;
 mod clear;
 
+use chrono::TimeDelta;
 use std::path::PathBuf;
-use std::time::Duration;
 
 pub struct Cache {
     name: String,
     dir_name: String,
     storing_method: StoringMethod,
     sqlite_conn: rusqlite::Connection,
-    revalidate_duration: Duration,
+    valid_period: TimeDelta,
 }
 
 pub enum StoringMethod {
@@ -25,12 +25,16 @@ impl Cache {
             dir_name: String::from("temp"),
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
-            revalidate_duration: Duration::from_secs(600),
+            valid_period: TimeDelta::new(600, 0).unwrap(),
         }
     }
 
     pub fn set_storing_method(&mut self, method: StoringMethod) {
         self.storing_method = method;
+    }
+
+    pub fn set_valid_period(&mut self, valid_period: TimeDelta) {
+        self.valid_period = valid_period;
     }
 
     pub fn read<T>(&self) -> Option<T>
