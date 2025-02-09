@@ -13,11 +13,11 @@ impl Cache {
     {
         let json = serde_json::to_string(data).expect("Failed to serialize cache data");
 
-        if !PathBuf::from(&self.dir_name).is_dir() {
-            fs::create_dir(&self.dir_name).expect("Failed to create cache directory");
+        if !&self.dir.is_dir() {
+            fs::create_dir(&self.dir).expect("Failed to create cache directory");
         }
 
-        let mut file = File::create(format!("{}/{}.json", self.dir_name, self.name)).expect("Failed to create cache file");
+        let mut file = File::create(self.dir.join(PathBuf::from(format!("{}.json", self.name)))).expect("Failed to create cache file");
 
         file.write_all(json.as_bytes()).expect("Failed to write cache file");
     }

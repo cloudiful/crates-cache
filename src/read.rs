@@ -11,7 +11,7 @@ impl Cache {
     where
         T: serde::de::DeserializeOwned,
     {
-        let cache_file = PathBuf::from(format!("{}/{}.json", self.dir_name, self.name));
+        let cache_file = self.dir.join(PathBuf::from(format!("{}.json", self.name)));
 
         if cache_file.exists() {
             info!("Cache file found at {:?}", cache_file);

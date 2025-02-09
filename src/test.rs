@@ -24,9 +24,8 @@ mod tests {
     fn json() {
         save_to_file();
         read_from_file();
-        clear_file();
+        remove();
     }
-
     fn save_to_file() {
         let apple = Apple::new(4);
 
@@ -43,7 +42,7 @@ mod tests {
 
         assert_eq!(Some(Apple::new(4)), cached_apple);
     }
-    fn clear_file() {
+    fn remove() {
         let apple = Apple::new(3);
 
         let mut apple_cache = Cache::new("apple1");
@@ -51,7 +50,7 @@ mod tests {
 
         apple_cache.save(&apple);
 
-        apple_cache.clear();
+        apple_cache.remove();
 
         let cached_apple: Option<Apple> = apple_cache.read();
 

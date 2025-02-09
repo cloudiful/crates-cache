@@ -2,6 +2,7 @@ mod read;
 mod save;
 mod clear;
 mod test;
+mod remove;
 
 use chrono::TimeDelta;
 use std::path::PathBuf;
@@ -9,7 +10,7 @@ use std::path::PathBuf;
 #[derive(Debug)]
 pub struct Cache {
     name: String,
-    dir_name: String,
+    dir: PathBuf,
     storing_method: StoringMethod,
     sqlite_conn: rusqlite::Connection,
     table: String,
@@ -26,7 +27,7 @@ impl Cache {
     pub fn new(name: &str) -> Cache {
         let cache = Cache {
             name: String::from(name),
-            dir_name: String::from("temp"),
+            dir: PathBuf::from("temp"),
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
             table: "cache".to_string(),
@@ -86,13 +87,30 @@ impl Cache {
         }
     }
 
+    /**
+    Remove item from cache
+    **/
+    pub fn remove(&self) {
+        match self.storing_method {
+            StoringMethod::JSON => {
+                self.remove_file()
+            }
+            StoringMethod::SQLite => {
+                self.remove_sqlite()
+            }
+        }
+    }
+
+    /**
+    Clear all cache
+    **/
     pub fn clear(&self) {
         match self.storing_method {
             StoringMethod::JSON => {
-                self.clear_file()
+                self.remove_all_files()
             }
             StoringMethod::SQLite => {
-                self.clear_sqlite()
+                self.clear_table()
             }
         }
     }
