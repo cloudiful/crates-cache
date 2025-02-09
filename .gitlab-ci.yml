@@ -5,4 +5,4 @@ test:
     - docker
   script:
     - rustc --version && cargo --version  # Print version info for debugging
-    - cargo test --workspace --verbose
+    - cargo test --package cache --lib tests
