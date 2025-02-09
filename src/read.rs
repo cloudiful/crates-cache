@@ -39,7 +39,8 @@ impl Cache {
     where
         T: serde::de::DeserializeOwned,
     {
-        let mut stmt = self.sqlite_conn.prepare("SELECT * FROM cache where name = ?1").expect("Failed to prepare query");
+        let sql = format!("SELECT * FROM {} where name = ?1", self.table);
+        let mut stmt = self.sqlite_conn.prepare(&sql).expect("Failed to prepare query");
 
         let results = stmt.query_map([&self.name], |row| {
             let result_str: String = row.get(1).unwrap();
