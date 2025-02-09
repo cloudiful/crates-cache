@@ -30,7 +30,7 @@ impl Cache {
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
             table: "cache".to_string(),
-            valid_period: TimeDelta::new(600, 0).unwrap(),
+            valid_period: TimeDelta::minutes(10),
         };
 
         cache.create_table(&cache.table);
