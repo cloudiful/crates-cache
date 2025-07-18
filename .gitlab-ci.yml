@@ -1,14 +1,19 @@
+stages:
+  - test
+  - publish
+
 test:
   stage: test
-  variables:
-    CARGO_HOME: $CI_PROJECT_DIR/.cargo/
   image: rust:latest
   tags:
     - docker
   script:
-    - rustc --version && cargo --version  # Print version info for debugging
-    - cargo test --package cache --lib tests
-  cache:
-    paths:
-      - $CARGO_HOME
+    - cargo test
 
+publish:
+  stage: publish
+  image: rust:latest
+  tags:
+    - docker
+  script:
+    - cargo publish --registry kellnr --token ${KELLNR_ACCESS_TOKEN}
