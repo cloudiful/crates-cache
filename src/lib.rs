@@ -1,8 +1,9 @@
 mod read;
 mod save;
 mod clear;
-mod test;
 mod remove;
+#[cfg(test)]
+mod test;
 
 use chrono::TimeDelta;
 use std::path::PathBuf;
