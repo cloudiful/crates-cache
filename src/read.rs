@@ -24,7 +24,7 @@ impl Cache {
 
             info!("Last modified: {} minutes ago", duration.as_secs() / 60);
 
-            if TimeDelta::from_std(duration).unwrap() > self.valid_period {
+            if duration > self.valid_period {
                 None
             } else {
                 let mut cache_str = String::new();
@@ -56,7 +56,7 @@ impl Cache {
         for result_set in results {
             match result_set {
                 Ok(result) => {
-                    if result.1 < self.valid_period {
+                    if result.1 < TimeDelta::from_std(self.valid_period).unwrap() {
                         strings.push(result.0);
                     }
                 }

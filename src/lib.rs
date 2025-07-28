@@ -5,8 +5,8 @@ mod remove;
 #[cfg(test)]
 mod test;
 
-use chrono::TimeDelta;
 use std::path::PathBuf;
+use std::time::Duration;
 
 #[derive(Debug)]
 pub struct Cache {
@@ -15,7 +15,7 @@ pub struct Cache {
     storing_method: StoringMethod,
     sqlite_conn: rusqlite::Connection,
     table: String,
-    valid_period: TimeDelta,
+    valid_period: Duration,
 }
 
 #[derive(Debug)]
@@ -32,7 +32,7 @@ impl Cache {
             storing_method: StoringMethod::SQLite,
             sqlite_conn: rusqlite::Connection::open(PathBuf::from("cache.db")).unwrap(),
             table: "cache".to_string(),
-            valid_period: TimeDelta::minutes(10),
+            valid_period: Duration::from_secs(3600),
         };
 
         cache.create_table(&cache.table);
@@ -44,7 +44,7 @@ impl Cache {
         self.storing_method = method;
     }
 
-    pub fn set_valid_period(&mut self, valid_period: TimeDelta) {
+    pub fn set_valid_period(&mut self, valid_period: Duration) {
         self.valid_period = valid_period;
     }
 
