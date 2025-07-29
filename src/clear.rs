@@ -2,7 +2,10 @@ use crate::Cache;
 
 impl Cache {
     pub(crate) fn clear_table(&self) {
+        log::info!("Clearing table {}", self.table);
         let sql = format!("delete from {}", self.table);
-        self.sqlite_conn.execute(&sql, ()).expect("Failed to clear cache.");
+        self.sqlite_conn
+            .execute(&sql, ())
+            .expect("Failed to clear cache.");
     }
 }

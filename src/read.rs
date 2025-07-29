@@ -20,7 +20,13 @@ impl Cache {
 
             let now = SystemTime::now();
 
-            let duration = now.duration_since(file_metadata.modified().expect("Failed to get file modified time")).expect("Failed to calculate cache duration");
+            let duration = now
+                .duration_since(
+                    file_metadata
+                        .modified()
+                        .expect("Failed to get file modified time"),
+                )
+                .expect("Failed to calculate cache duration");
 
             info!("Last modified: {} minutes ago", duration.as_secs() / 60);
 
@@ -28,28 +34,40 @@ impl Cache {
                 None
             } else {
                 let mut cache_str = String::new();
-                File::open(cache_file).expect("Failed to open cache file").read_to_string(&mut cache_str).expect("Failed to read cache file");
+                File::open(cache_file)
+                    .expect("Failed to open cache file")
+                    .read_to_string(&mut cache_str)
+                    .expect("Failed to read cache file");
                 let result = serde_json::from_str(&cache_str).expect("Failed to parse cache file");
                 Some(result)
             }
-        } else { None }
+        } else {
+            None
+        }
     }
 
     pub(crate) fn read_from_sqlite<T>(&self) -> Option<T>
     where
         T: serde::de::DeserializeOwned,
     {
-        let sql = format!("SELECT * FROM {} where name = ?1", self.table);
-        let mut stmt = self.sqlite_conn.prepare(&sql).expect("Failed to prepare query");
+        info!("Reading {} from sqlite table {}", self.name, self.table);
 
-        let results = stmt.query_map([&self.name], |row| {
-            let result_str: String = row.get(1).unwrap();
-            // let insert_time: i64 = row.get(2).unwrap();
-            let update_time: i64 = row.get(3).unwrap();
-            let datetime = DateTime::from_timestamp_micros(update_time).unwrap();
-            let duration = Local::now().signed_duration_since(datetime);
-            Ok((result_str, duration))
-        }).expect("Failed to query query");
+        let sql = format!("SELECT * FROM {} where name = ?1", self.table);
+        let mut stmt = self
+            .sqlite_conn
+            .prepare(&sql)
+            .expect("Failed to prepare query");
+
+        let results = stmt
+            .query_map([&self.name], |row| {
+                let result_str: String = row.get(1).unwrap();
+                // let insert_time: i64 = row.get(2).unwrap();
+                let update_time: i64 = row.get(3).unwrap();
+                let datetime = DateTime::from_timestamp_micros(update_time).unwrap();
+                let duration = Local::now().signed_duration_since(datetime);
+                Ok((result_str, duration))
+            })
+            .expect("Failed to query query");
 
         let mut strings = Vec::new();
 
@@ -60,14 +78,12 @@ impl Cache {
                         strings.push(result.0);
                     }
                 }
-                Err(_) => {
-                    return None
-                }
+                Err(_) => return None,
             }
         }
 
         match strings.first() {
-            None => { None }
+            None => None,
             Some(string) => {
                 let result: T = serde_json::from_str(string).expect("Failed to parse cache file");
                 Some(result)
