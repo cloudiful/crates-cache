@@ -2,22 +2,8 @@ stages:
   - test
   - publish
 
-test:
-  stage: test
-  image: rust:latest
-  variables:
-    CARGO_HOME: $CI_PROJECT_DIR/.cargo/
-  tags:
-    - docker
-  script:
-    - cargo test
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  cache:
-    - paths:
-        - target/
-    - paths:
-        - $CARGO_HOME
+include:
+  - component: $CI_SERVER_FQDN/ci-component/rust/test@main
 
 publish:
   stage: publish
