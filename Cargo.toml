@@ -1,11 +1,11 @@
 [package]
 name = "cache"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 
 [dependencies]
 serde = {version = "1.0.219", features = ["derive"]}
-serde_json = "1.0.142"
+serde_json = "1.0.143"
 log = "0.4.27"
 rusqlite = {version = "0.37.0", features = ["bundled"]}
 chrono = "0.4.41"
